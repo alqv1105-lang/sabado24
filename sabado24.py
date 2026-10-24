@@ -7,6 +7,7 @@ No requiere librerias externas ni conexiones a Internet.
 from copy import deepcopy
 
 
+
 IGV = 0.18
 
 CATALOGO = {
