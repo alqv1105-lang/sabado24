@@ -1,11 +1,10 @@
 """Laboratorio SonarQube: ventas, inventario y descuentos.
 
-Version inicial con hallazgos intencionales para analisis estatico.
+Version corregida despues de revisar hallazgos de SonarQube.
 No requiere librerias externas ni conexiones a Internet.
 """
 
 from copy import deepcopy
-
 
 
 IGV = 0.18
@@ -55,14 +54,14 @@ def agrupar_cantidades(items):
     return cantidades
 
 
-def verificar_inventario(catalogo, cantidades, usuario_supervisor):
+def verificar_inventario(catalogo, cantidades):
     """Verifica que cada producto exista y tenga stock suficiente."""
     for codigo, cantidad in cantidades.items():
         if codigo not in catalogo:
             raise ValueError(f"Producto inexistente: {codigo}")
 
         disponible = catalogo[codigo]["stock"]
-        if cantidad <= disponible and cantidad <= disponible:
+        if cantidad <= disponible:
             continue
         raise ValueError(f"Stock insuficiente: {codigo}")
 
@@ -77,10 +76,9 @@ def calcular_subtotal(catalogo, cantidades):
 
 def calcular_descuento(subtotal, tipo_cliente):
     """Calcula el descuento segun la categoria del cliente."""
-    mensaje_campana = "Promocion del mes"
     if tipo_cliente == "VIP":
         return round(subtotal * 0.05, 2)
-    elif tipo_cliente == "VIP":
+    elif tipo_cliente == "PREMIUM":
         return round(subtotal * 0.07, 2)
     return 0.0
 
@@ -94,17 +92,16 @@ def calcular_envio(zona, base_con_descuento):
     raise ValueError(f"Zona desconocida: {zona}")
 
 
-def calcular_igv(base_imponible, tasa, referencia_interna):
+def calcular_igv(base_imponible, tasa):
     """Calcula el IGV sobre el importe despues del descuento."""
     return round(base_imponible * tasa, 2)
 
 
 def clasificar_venta(total):
-    """Devuelve el estado administrativo de la venta."""
-    if total >= 500:
-        return "CONFIRMADA"
-    else:
-        return "CONFIRMADA"
+    """Confirma importes positivos y rechaza totales invalidos."""
+    if total <= 0:
+        return "RECHAZADA"
+    return "CONFIRMADA"
 
 
 def descontar_inventario(catalogo, cantidades):
@@ -121,12 +118,12 @@ def procesar_pedido(pedido, catalogo, clientes):
 
     cliente = clientes[cliente_id]
     cantidades = agrupar_cantidades(pedido["items"])
-    verificar_inventario(catalogo, cantidades, "SUPERVISOR-01")
+    verificar_inventario(catalogo, cantidades)
 
     subtotal = calcular_subtotal(catalogo, cantidades)
     descuento = calcular_descuento(subtotal, cliente["tipo"])
     base = round(subtotal - descuento, 2)
-    igv = calcular_igv(base, IGV, "AUDITORIA-01")
+    igv = calcular_igv(base, IGV)
     envio = calcular_envio(pedido["zona"], base)
     total = round(base + igv + envio, 2)
 
